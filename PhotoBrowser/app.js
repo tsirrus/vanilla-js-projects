@@ -24,7 +24,7 @@
       fetch(url) // Returns a promise for a Response
       .then(response => response.json()) // Returns a promise for the parsed JSON
       .then(data => {
-        console.log(data);
+        console.log(data.photos);
       }) // Transform the response to only take what we need
     );
   }
