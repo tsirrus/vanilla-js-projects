@@ -16,6 +16,12 @@
     return link;
   }
 
+  function emptyChildren(element) {
+    while (element.lastChild) {
+      element.removeChild(element.lastChild);
+    }
+  }
+
   function getPhotosForSearch(searchTerm) {
     // This is an ES6 template string, much better than verbose string concatenation...
     var url = `${FLICKR_API_URL}&text=${searchTerm}&api_key=${FLICKR_API_KEY}`;
@@ -55,10 +61,15 @@
 
     getPhotosForSearch(search)
     .then(searchResult => {
+      console.log(searchResult.photo); //Test
       return mapPhotos(searchResult.photo);
     })
     .then(photoMap => {
-      console.log(photoMap);
+      emptyChildren(searchAlbum);
+      photoMap.forEach(photo => {
+        //console.log(photo); //Test
+        searchAlbum.appendChild(createFlickrThumb(photo));
+      });
     })
   });
 })();
