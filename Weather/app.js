@@ -32,7 +32,7 @@
   var app = document.querySelector('#app');
   var cityForm = app.querySelector('.city-form');
   var cityInput = cityForm.querySelector('.city-input');
-  var getWeatherButton = cityForm.querySelector('.get-weather-button');
+  //var getWeatherButton = cityForm.querySelector('.get-weather-button');
   var cityWeather = app.querySelector('.city-weather');
 
 
