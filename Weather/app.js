@@ -29,14 +29,95 @@
     );
   }
 
+  function getWeather(coords) {
+    // Template string again! I hope you can see how nicer this is :)
+    var url = `${CORS_PROXY}${DARKSKY_API_URL}${DARKSKY_API_KEY}/${coords.lat},${coords.lng}?units=si&exclude=minutely,alerts,flags`;
+
+    return (
+      fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        //console.log(data); //Test
+        return data;
+      })
+    );
+  }
+
+
   var app = document.querySelector('#app');
   var cityForm = app.querySelector('.city-form');
   var cityInput = cityForm.querySelector('.city-input');
   //var getWeatherButton = cityForm.querySelector('.get-weather-button');
-  var cityWeather = app.querySelector('.city-weather');
+  //var cityWeather = app.querySelector('.city-weather');
+  var cityWeatherBar = app.querySelector('.city-weather-bar');
+  var currentWeather = document.querySelector('.current-weather');
+  var forecastBar = document.querySelector('.forecast-bar');
+
+  //Basic skycons config
+  var skycons = new Skycons ({
+    "monochrome": false,
+    "colors": {
+      "main": "blue",
+      "moon": '#7FFFD4',
+      "fog": "lightgray",
+      "fogbank": "darkgray",
+      "cloud": "gray",
+      "snow": "white",
+      "leaf": "green",
+      "rain": "blue",
+      "sun": "yellow"
+    }
+  });
+  var weatherList = [
+    "clear-day", "clear-night", "partly-cloudy-day",
+    "partly-cloudy-night", "cloudy", "rain", "sleet", "snow", "wind",
+    "fog"
+  ];
+
+  function generateListItemTag(parentElement, listItemClass, listItemInfo) {
+    var li = document.createElement('li');
+    var label = document.createElement('label');
+    li.className = listItemClass;
+    label.innerText = listItemClass + ": " + listItemInfo;
+    li.appendChild(label);
+    parentElement.appendChild(li);
+  }
+
+  function generateForecastTag(parentElement, forecast, skyconName) {
+    var canvas = document.createElement('canvas')
+    canvas.id = skyconName;
+    canvas.className = `weather-skycon ${forecast.icon}`;
+    canvas.width = 140;
+    canvas.height = 140;
+    parentElement.appendChild(canvas);
+    skycons.set(forecast.icon, forecast.icon);
+
+    var ul = document.createElement('ul');
+    ul.className = 'weather-info';
+    var date = new Date(forecast.time * 1000)
+    generateListItemTag(ul, "date", date.toLocaleString('en-CA'));
+    generateListItemTag(ul, "summary", forecast.summary);
+    generateListItemTag(ul, "temperature", forecast.temperature);
+    generateListItemTag(ul, "feels-like", forecast.apparentTemperature);
+    generateListItemTag(ul, "humidity", +forecast.humidity * 100);
+
+    parentElement.appendChild(ul);
+  }
+
+  function generateForecastTimeList(parentElement, forecastArray) {
+    for (var i in forecastArray) {
+      console.log("forecast=", forecastArray[i]);
+      var date = new Date(forecastArray[i].time * 1000).toLocaleString('en-CA');
+      console.log(`Date=${date}`);
+      var li = document.createElement('li');
+      li.className = 'weather';
+      li.margin = '5px';
+      generateForecastTag(li, forecastArray[i], `forecast-item-${i}`);
+      parentElement.appendChild(li);
+    }
 
 
-
+  }
 
   //getCoordinatesForCity("montreal").then(console.log); //Test
   //getCurrentWeather({lat: 45.5, lng: -73.5}).then(console.log); //Test
@@ -64,12 +145,29 @@
 
     // This code doesn't change!
     var city = cityInput.value;
-    cityWeather.innerText = 'Fetching temperature for ' + city;
+    //cityWeather.innerText = 'Fetching temperature for ' + city;
 
     getCoordinatesForCity(city)
-    .then(getCurrentWeather)
+    //.then(getCurrentWeather)
+    .then(getWeather)
     .then(function(weather) {
-      cityWeather.innerText = 'Current temperature: ' + weather.temperature;
+      generateForecastTag(currentWeather,weather.currently,"currently");
+      generateForecastTimeList(forecastBar, weather.hourly.data);
+      //skycons.add("city-weather-skycon", weather.currently.icon);
+
+      for (i = weatherList.length; i--;) {
+        var weatherType = weatherList[i],
+          elements = document.getElementsByClassName(weatherType);
+        for (e = elements.length; e--;) {
+          skycons.set(elements[e], weatherType);
+        }
+      }
+
+      skycons.play();
+      console.log("Weather Info=",weather);
+
+      //cityWeather.innerText = 'Current temperature: ' + weather.currently.summary + ' it is ' + weather.currently.temperature;
+
     });
   });
 })();
