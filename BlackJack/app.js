@@ -113,7 +113,43 @@
 
   // Game mechanics functions
   // ========================
-
+  function checkRound() {
+    if (roundWon || dealerScore > 21 || playerCards.length === 5) {
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+      if (playerCards.length === 2 && playerScore === 21) {
+        announcementNode.innerText = "BlackJack!!! You win!";
+      }
+      else {
+        announcementNode.innerText = "You win!";
+      }
+      return true;
+    }
+    else if (roundTied) {
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+      announcementNode.innerText = "Tied game :|";
+      return true;
+    }
+    else if (roundLost || playerScore > 21 || dealerCards.length === 5) {
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+      if (dealerCards.length === 2 && dealerScore === 21) {
+        announcementNode.innerText = "BlackJack!!! You lose!";
+      }
+      else {
+        announcementNode.innerText = "You lose...";
+      }
+      return true;
+    }
+    else {
+      announcementNode.innerText = "";
+      return false;
+    }
+  }
 
   function getNewDeck() {
     /* This function needs to:
@@ -219,6 +255,11 @@
       displayCard(dealerCardsNode, dealerCards[0], true);
       displayCard(dealerCardsNode, dealerCards[1]);
 
+      if (playerScore === 21) {
+        roundWon = true;
+      }
+      checkRound();
+
       nextHandNode.style.display = 'none';
       hitMeNode.style.display = 'block';
       stayNode.style.display = 'block';
@@ -244,6 +285,7 @@
     roundTied = false;
     playerScoreNode.innerText = playerScore;
     dealerScoreNode.innerText = dealerScore;
+    checkRound();
     emptyChildren(playerCardsNode);
     emptyChildren(dealerCardsNode);
   }
@@ -265,7 +307,7 @@
     after having appended the <img> to the game play UI.
     7) Catch error and log....
     */
-    if (roundLost || roundTied || roundWon) {
+    if (checkRound()) {
       return;
     }
     else {
@@ -279,10 +321,10 @@
 
           if (playerScore > 21) {
             roundLost = true;
-            nextHandNode.style.display = 'block';
-            hitMeNode.style.display = 'none';
-            stayNode.style.display = 'none';
             dealerPlays();
+          }
+          else {
+            checkRound();
           }
         }
         else {
@@ -310,7 +352,11 @@
     dealerScore = computeScore(dealerCards);
     dealerScoreNode.innerText = dealerScore;
 
-    if (roundLost || roundTied || roundWon) {
+    if (dealerCards.length === 2 && dealerScore === 21) {
+      roundLost = true;
+    }
+
+    if (checkRound()) {
       return;
     }
 
@@ -320,22 +366,21 @@
     }
     else if (dealerScore > 21) {
       roundWon = true;
-      // ... Update the UI to reflect this...
+      checkRound();
     }
     else if (dealerScore > playerScore) {
       roundLost = true;
-      // ... Update the UI to reflect this...
+      checkRound();
     }
     else if (dealerScore === playerScore) {
       roundTied = true;
-      // ... Update the UI to reflect this...
+      checkRound();
     }
     else {
       roundWon = true;
-      // ... Update the UI to reflect this...
+      checkRound();
     }
 
   }
 
-  //getNewDeck();
 })();
