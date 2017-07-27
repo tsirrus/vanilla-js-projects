@@ -114,16 +114,37 @@
   // Game mechanics functions
   // ========================
   function checkRound() {
-    if (roundWon || dealerScore > 21 || playerCards.length === 5) {
+    if (playerCards.length === 2 && playerScore === 21 && dealerCards.length === 2 && dealerScore === 21) {
       nextHandNode.style.display = 'block';
       hitMeNode.style.display = 'none';
       stayNode.style.display = 'none';
-      if (playerCards.length === 2 && playerScore === 21) {
-        announcementNode.innerText = "BlackJack!!! You win!";
-      }
-      else {
-        announcementNode.innerText = "You win!";
-      }
+      announcementNode.innerText = "WHOA!! Tied BlackJack!!";
+      roundTied = true;
+      return true;
+    }
+    else if (dealerCards.length === 2 && dealerScore === 21) {
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+      announcementNode.innerText = "BlackJack!!! You lose!";
+      roundLost = true;
+      return true;
+    }
+    else if (playerCards.length === 2 && playerScore === 21) {
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+      announcementNode.innerText = "BlackJack!!! You win!";
+      roundWon = true;
+      return true;
+    }
+
+    if (roundWon || dealerScore > 21 || ( playerCards.length === 5 && playerScore <= 21)) {
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+      announcementNode.innerText = "You win!";
+      roundWon = true;
       return true;
     }
     else if (roundTied) {
@@ -133,16 +154,12 @@
       announcementNode.innerText = "Tied game :|";
       return true;
     }
-    else if (roundLost || playerScore > 21 || dealerCards.length === 5) {
+    else if (roundLost || playerScore > 21 || (dealerCards.length === 5 && dealerScore <= 21)) {
       nextHandNode.style.display = 'block';
       hitMeNode.style.display = 'none';
       stayNode.style.display = 'none';
-      if (dealerCards.length === 2 && dealerScore === 21) {
-        announcementNode.innerText = "BlackJack!!! You lose!";
-      }
-      else {
-        announcementNode.innerText = "You lose...";
-      }
+      announcementNode.innerText = "You lose...";
+      roundLost = true;
       return true;
     }
     else {
@@ -256,13 +273,17 @@
       displayCard(dealerCardsNode, dealerCards[1]);
 
       if (playerScore === 21) {
-        roundWon = true;
+        dealerPlays();
       }
-      checkRound();
 
       nextHandNode.style.display = 'none';
       hitMeNode.style.display = 'block';
       stayNode.style.display = 'block';
+
+      if (checkRound()) {
+        dealerPlays();
+      }
+
     })
   }
 
@@ -308,6 +329,7 @@
     7) Catch error and log....
     */
     if (checkRound()) {
+      dealerPlays();
       return;
     }
     else {
@@ -324,7 +346,9 @@
             dealerPlays();
           }
           else {
-            checkRound();
+            if (checkRound()) {
+              dealerPlays();
+            }
           }
         }
         else {
@@ -344,7 +368,7 @@
     update the UI to reflect this.
     */
 
-    nextHandNode.style.display = 'block';
+    //nextHandNode.style.display = 'block';
     hitMeNode.style.display = 'none';
     stayNode.style.display = 'none';
 
@@ -353,7 +377,12 @@
     dealerScoreNode.innerText = dealerScore;
 
     if (dealerCards.length === 2 && dealerScore === 21) {
-      roundLost = true;
+      if (playerCards.length === 2 && playerScore === 21) {
+        roundTied = true;
+      }
+      else {
+        roundLost = true;
+      }
     }
 
     if (checkRound()) {

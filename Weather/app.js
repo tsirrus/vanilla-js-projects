@@ -64,6 +64,7 @@
 
     // This code doesn't change!
     var city = cityInput.value;
+    cityWeather.innerText = 'Fetching temperature for ' + city;
 
     getCoordinatesForCity(city)
     .then(getCurrentWeather)
