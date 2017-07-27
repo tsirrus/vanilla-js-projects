@@ -13,37 +13,90 @@
   var roundWon = false;
   var roundTied = false;
 
+  // Deck of Cards API calls:
+  // ===================
+  function shuffleNewDeck () {
+    return fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6')
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      return data.deck_id;
+    })
+    .catch(error => {
+      throw new Error(error);
+    });
+  }
+
+  function drawCardsFromDeck(amountOfCards) {
+    console.log("deckId=",deckID);
+    return fetch(`https://deckofcardsapi.com/api/deck/${deckID}/draw/?count=${amountOfCards}`)
+    .then(response => response.json())
+    .then(data => {
+      console.log(data); //Test
+      if(data.success) {
+        return data.cards;
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  }
+
+  function emptyChildren(element) {
+    while (element.lastChild) {
+      element.removeChild(element.lastChild);
+    }
+  }
+
+  function displayCards(element, cardArray, hideFirstCard=false) {
+    console.log("HideFirstCard=",hideFirstCard);
+    for (var i in cardArray) {
+      console.log(i);
+      var image = document.createElement('img');
+      image.setAttribute('src', cardArray[i].image);
+      image.setAttribute('alt', cardArray[i].code);
+
+      if (hideFirstCard) {
+        if (i == 0) {
+          console.log("Hiding first card!");
+          image.setAttribute('src', "./card.png");    
+        }
+      }
+
+      element.appendChild(image);
+    }
+  }
 
   // game play nodes:
   // ===================
   // These nodes will be used often to update the UI of the game.
 
   // assign this variable to the DOM node which has id="dealer-number"
-  var dealerScoreNode
+  var dealerScoreNode = document.querySelector('#dealer-number');
 
   // select the DOM node which has id="player-number"
-  var playerScoreNode
+  var playerScoreNode = document.querySelector('#player-number');
 
   // select the DOM node which has id="dealer-cards"
-  var dealerCardsNode
+  var dealerCardsNode = document.querySelector('#dealer-cards');
 
   // select the DOM node which has id="player-cards"
-  var playerCardsNode
+  var playerCardsNode = document.querySelector('#player-cards');
 
   // selec the DOM node which has id="announcement"
-  var announcementNode
+  var announcementNode = document.querySelector('#announcement');
 
   // selec the DOM node which has id=new-game"
-  var newDeckNode
+  var newDeckNode = document.querySelector('#new-game');
 
   // selec the DOM node which has id="next-hand"
-  var nextHandNode
+  var nextHandNode = document.querySelector('#next-hand');
 
   // selec the DOM node which has id=""hit-me""
-  var hitMeNode
+  var hitMeNode = document.querySelector('#hit-me');
 
   // selec the DOM node which has id="stay"
-  var stayNode
+  var stayNode = document.querySelector('#stay');
 
 
   // On click events
@@ -71,11 +124,55 @@
     to provide the player with the Next Hand button.
     5) Hide the hit-me and stay buttons by changing their style.display to "none"
     6) Catch any errors that may occur on the fetch and log them */
+    resetPlayingArea(); //1
+    shuffleNewDeck() //2, 3
+    .then(result => {
+      //console.log("Result=",result);
+      deckID = result;
+      //console.log("deckID=",deckID);
+      nextHandNode.style.display = 'block';
+      hitMeNode.style.display = 'none';
+      stayNode.style.display = 'none';
+    });
   }
 
   function computeScore(cards) {
     // This function receives an array of cards and returns the total score.
     // ...
+    var score = 0;
+    //var arrayAces = []; //Not needed
+    for (card in cards) {
+      switch(card) {
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          score += +card;
+          break;
+        case 'JACK':
+        case 'QUEEN':
+        case 'KING':
+          score += 10;
+          break;
+        case 'ACE':
+          score += 100;
+          break;
+      }
+    }
+    //Handle ACE logic (1 or 11)
+    while (score >= 100) {
+      if (score - 89 <= 21) {
+        score -= 89;
+      }
+      else {
+        score -= 99;
+      }
+    }
+    return score;
   }
 
 
@@ -99,6 +196,17 @@
     announcementNode.textContent = "BlackJack! You Win!";
     8) catch and log possible error from the fetch.
     */
+    resetPlayingArea(); //1
+    drawCardsFromDeck(4) //2
+    .then(cardsDrawn => {
+      console.log(cardsDrawn);
+      playerCards = cardsDrawn.slice(0,2);
+      console.log("PlayerCards=",playerCards);
+      displayCards(playerCardsNode, playerCards);
+      dealerCards = cardsDrawn.slice(2);
+      console.log("DealerCards=",dealerCards);
+      displayCards(dealerCardsNode, dealerCards, true);
+    })
   }
 
 
@@ -109,6 +217,17 @@
     be displaying data from a previous round in the game. (ex: dealerScoreNode)
     3) Remove all <img> elements inside dealerCardsNode and playerCardsNode.
     */
+    //Reset variables
+    //deckID = "";
+    dealerCards = [];
+    playerCards = [];
+    playerScore = 0;
+    dealerScore = 0;
+    roundLost = false;
+    roundWon = false;
+    roundTied = false;
+    emptyChildren(playerCardsNode);
+    emptyChildren(dealerCardsNode);
   }
 
 
@@ -159,4 +278,6 @@
     }
 
   }
+
+  //getNewDeck();
 })();
