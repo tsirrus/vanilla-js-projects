@@ -19,7 +19,7 @@
     return fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=6')
     .then(response => response.json())
     .then(data => {
-      console.log(data);
+      //console.log(data); //Test
       return data.deck_id;
     })
     .catch(error => {
@@ -28,17 +28,17 @@
   }
 
   function drawCardsFromDeck(amountOfCards) {
-    console.log("deckId=",deckID);
+    //console.log("deckId=",deckID); //Test
     return fetch(`https://deckofcardsapi.com/api/deck/${deckID}/draw/?count=${amountOfCards}`)
     .then(response => response.json())
     .then(data => {
-      console.log(data); //Test
+      //console.log(data); //Test
       if(data.success) {
         return data.cards;
       }
     })
     .catch(error => {
-      console.log(error);
+      throw new Error(error);
     });
   }
 
@@ -48,23 +48,23 @@
     }
   }
 
-  function displayCards(element, cardArray, hideFirstCard=false) {
-    console.log("HideFirstCard=",hideFirstCard);
-    for (var i in cardArray) {
-      console.log(i);
-      var image = document.createElement('img');
-      image.setAttribute('src', cardArray[i].image);
-      image.setAttribute('alt', cardArray[i].code);
+  function displayCard(element, card, hideFirstCard=false) {
+    var image = document.createElement('img');
+    image.setAttribute('src', card.image);
+    image.setAttribute('alt', card.code);
 
-      if (hideFirstCard) {
-        if (i == 0) {
-          console.log("Hiding first card!");
-          image.setAttribute('src', "./card.png");    
-        }
-      }
-
-      element.appendChild(image);
+    if (hideFirstCard) {
+      //console.log("Hiding first card!"); //Test
+      image.setAttribute('src', "./card.png");
+      image.setAttribute('id', "hiddenDealerCard");
     }
+
+    element.appendChild(image);
+  }
+
+  function showDealerCard(){
+    var hiddenCard = document.querySelector('#hiddenDealerCard');
+    hiddenCard.setAttribute('src', dealerCards[0].image);
   }
 
   // game play nodes:
@@ -140,9 +140,11 @@
     // This function receives an array of cards and returns the total score.
     // ...
     var score = 0;
+    console.log("Cards=",cards);
     //var arrayAces = []; //Not needed
-    for (card in cards) {
-      switch(card) {
+    for (var i in cards) {
+      console.log("Card Value=",cards[i].value);
+      switch(cards[i].value) {
         case '2':
         case '3':
         case '4':
@@ -151,7 +153,8 @@
         case '7':
         case '8':
         case '9':
-          score += +card;
+        case '10':
+          score += +cards[i].value;
           break;
         case 'JACK':
         case 'QUEEN':
@@ -199,13 +202,26 @@
     resetPlayingArea(); //1
     drawCardsFromDeck(4) //2
     .then(cardsDrawn => {
-      console.log(cardsDrawn);
+      //console.log(cardsDrawn);
       playerCards = cardsDrawn.slice(0,2);
-      console.log("PlayerCards=",playerCards);
-      displayCards(playerCardsNode, playerCards);
+      //console.log("PlayerCards=",playerCards);
+      displayCard(playerCardsNode, playerCards[0]);
+      displayCard(playerCardsNode, playerCards[1]);
+      playerScore = computeScore(playerCards);
+      console.log(playerScore);
+      playerScoreNode.innerText = playerScore;
+
       dealerCards = cardsDrawn.slice(2);
-      console.log("DealerCards=",dealerCards);
-      displayCards(dealerCardsNode, dealerCards, true);
+      dealerScore = computeScore(dealerCards.slice(1));
+      console.log(dealerScore);
+      dealerScoreNode.innerText = dealerScore;
+      //console.log("DealerCards=",dealerCards);
+      displayCard(dealerCardsNode, dealerCards[0], true);
+      displayCard(dealerCardsNode, dealerCards[1]);
+
+      nextHandNode.style.display = 'none';
+      hitMeNode.style.display = 'block';
+      stayNode.style.display = 'block';
     })
   }
 
@@ -226,6 +242,8 @@
     roundLost = false;
     roundWon = false;
     roundTied = false;
+    playerScoreNode.innerText = playerScore;
+    dealerScoreNode.innerText = dealerScore;
     emptyChildren(playerCardsNode);
     emptyChildren(dealerCardsNode);
   }
@@ -247,6 +265,34 @@
     after having appended the <img> to the game play UI.
     7) Catch error and log....
     */
+    if (roundLost || roundTied || roundWon) {
+      return;
+    }
+    else {
+      drawCardsFromDeck(1)
+      .then(cardArray => {
+        if (target === 'player') {
+          playerCards.push(cardArray[0]);
+          displayCard(playerCardsNode, cardArray[0]);
+          playerScore = computeScore(playerCards);
+          playerScoreNode.innerText = playerScore;
+
+          if (playerScore > 21) {
+            roundLost = true;
+            nextHandNode.style.display = 'block';
+            hitMeNode.style.display = 'none';
+            stayNode.style.display = 'none';
+            dealerPlays();
+          }
+        }
+        else {
+          dealerCards.push(cardArray[0]);
+          displayCard(dealerCardsNode, cardArray[0]);
+
+          dealerPlays();
+        }
+      })
+    }
   }
 
   function dealerPlays() {
@@ -255,6 +301,18 @@
     2) Compute the dealer's score by calling the computeScore() function and
     update the UI to reflect this.
     */
+
+    nextHandNode.style.display = 'block';
+    hitMeNode.style.display = 'none';
+    stayNode.style.display = 'none';
+
+    showDealerCard();
+    dealerScore = computeScore(dealerCards);
+    dealerScoreNode.innerText = dealerScore;
+
+    if (roundLost || roundTied || roundWon) {
+      return;
+    }
 
     if (dealerScore < 17) {
       // a delay here makes for nicer game play because of suspence.
