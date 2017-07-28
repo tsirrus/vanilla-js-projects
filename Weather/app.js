@@ -106,9 +106,9 @@
 
   function generateForecastTimeList(parentElement, forecastArray) {
     for (var i in forecastArray) {
-      console.log("forecast=", forecastArray[i]);
+      //console.log("forecast=", forecastArray[i]);
       var date = new Date(forecastArray[i].time * 1000).toLocaleString('en-CA');
-      console.log(`Date=${date}`);
+      //console.log(`Date=${date}`);
       var li = document.createElement('li');
       li.className = 'weather';
       li.margin = '5px';
@@ -155,9 +155,10 @@
       generateForecastTimeList(forecastBar, weather.hourly.data);
       //skycons.add("city-weather-skycon", weather.currently.icon);
 
+      //Assign skycons to classes, allowing duplicates.
       for (i = weatherList.length; i--;) {
-        var weatherType = weatherList[i],
-          elements = document.getElementsByClassName(weatherType);
+        var weatherType = weatherList[i];
+        var elements = document.getElementsByClassName(weatherType);
         for (e = elements.length; e--;) {
           skycons.set(elements[e], weatherType);
         }

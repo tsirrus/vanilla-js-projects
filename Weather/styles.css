@@ -8,6 +8,10 @@ section, ul {
   justify-content: flex-start;
 }
 
+.weather ul {
+  width: 500px;
+}
+
 .weather-info {
   display: flex;
   flex-direction: column;
