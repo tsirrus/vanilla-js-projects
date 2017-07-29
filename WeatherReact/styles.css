@@ -1,0 +1,44 @@
+section, ul {
+  margin: 0;
+  padding: 0;
+}
+
+.weather {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.weather ul {
+  width: 500px;
+}
+
+.weather-info {
+  display: flex;
+  flex-direction: column;
+  align-content: space-around;
+  list-style: none;
+}
+
+.weather-info li {
+  height: 35px;
+}
+
+.weather-info li:nth-child(even) {
+  background-color: #ADD8E6;
+}
+
+.weather-info li:nth-child(odd) {
+  background-color: #E6E6FA;
+}
+
+.weather-info label {
+  display: inline-block;
+  font-size: 1rem;
+  margin: 3px;
+  padding: 3px;
+  vertical-align: middle;
+}
+
+.weather-skycon {
+  background-color: skyblue;
+}
