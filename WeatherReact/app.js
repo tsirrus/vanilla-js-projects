@@ -2,7 +2,7 @@ const e = React.createElement;
 
 const cityForm = e(
   'form', {className: "cityForm"}
-  , e('input', {type: 'text', placeholder: 'Enter city name'},)
+  , e('input', {type: 'text', placeholder: 'Enter city name'})
   , e('button', {type: "submit"},"Get Weather!")
 );
 
@@ -43,7 +43,7 @@ const container = React.createClass({
 ReactDOM.render(
   cityForm,
   document.getElementById('userForm')
-)
+);
 
 /*
 ReactDOM.render(
